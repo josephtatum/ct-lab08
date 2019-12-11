@@ -18,7 +18,9 @@ describe('recipe routes', () => {
 
   let event;
   let recipe;
+  let today;
   beforeEach(async() => {
+    today = new Date;
     recipe = await Recipe
       .create({
         name: 'Cardamumabullar',
@@ -33,7 +35,7 @@ describe('recipe routes', () => {
     event = await Event
       .create({
         recipeId: recipe._id,
-        dateOfEvent: '06/28/1991',
+        dateOfEvent: today,
         notes: 'was good!',
         rating: 3
       });
@@ -96,27 +98,14 @@ describe('recipe routes', () => {
   });
 
   it('gets a recipe by id', async() => {
-    // const recipe = await Recipe.create({
-    //   name: 'cookies',
-    //   ingredients: [
-    //     { name: 'flour', amount: 1, measurement: 'cup' }
-    //   ],
-    //   directions: [
-    //     'preheat oven to 375',
-    //     'mix ingredients',
-    //     'put dough on cookie sheet',
-    //     'bake for 10 minutes'
-    //   ],
-    // });
-
     return request(app)
       .get(`/api/v1/recipes/${recipe._id}`)
       .then(res => {
         expect(res.body).toEqual({
-          _id: recipe._id,
+          _id: recipe._id.toString(),
           name: 'Cardamumabullar',
           ingredients: [{
-            _id: expect.any(String),
+            _id: JSON.parse(JSON.stringify(recipe.ingredients[0]._id)),
             amount: 2,
             measurement: 'teaspoon',
             name: 'Cardamom'
@@ -124,6 +113,14 @@ describe('recipe routes', () => {
           directions: [
             'make it'
           ],
+          events: [{
+            recipeId: recipe._id.toString(),
+            _id: event._id.toString(),
+            dateOfEvent: today.toISOString(),
+            notes: 'was good!',
+            rating: 3,
+            __v: 0
+          }],
           __v: 0
         });
       });
