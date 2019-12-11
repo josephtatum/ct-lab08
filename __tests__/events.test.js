@@ -5,6 +5,7 @@ const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
 const Event = require('../lib/models/Event');
+const Recipe = require('../lib/models/Recipe');
 
 describe('event routes', () => {
   beforeAll(() => {
@@ -13,6 +14,29 @@ describe('event routes', () => {
 
   beforeEach(() => {
     return mongoose.connection.dropDatabase();
+  });
+
+  let event;
+  let recipe;
+  beforeEach(async() => {
+    recipe = await Recipe
+      .create({
+        name: 'Cardamumabullar',
+        ingredients: [{
+          amount: 2,
+          measurement: 'teaspoon',
+          name: 'Cardamom'
+        }],
+        directions: ['make it']
+      });
+
+    event = await Event
+      .create({
+        recipeId: recipe._id,
+        dateOfEvent: '06/28/1991',
+        notes: 'was good!',
+        rating: 3
+      });
   });
 
   afterAll(() => {
