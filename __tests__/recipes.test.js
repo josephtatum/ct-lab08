@@ -5,7 +5,7 @@ const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
 const Recipe = require('../lib/models/Recipe');
-const Event = require('../libe/models/Event');
+const Event = require('../lib/models/Event');
 
 describe('recipe routes', () => {
   beforeAll(() => {
@@ -18,7 +18,7 @@ describe('recipe routes', () => {
 
   let event;
   let recipe;
-  beforeEach(async () => {
+  beforeEach(async() => {
     recipe = await Recipe
       .create({
         name: 'Cardamumabullar',
