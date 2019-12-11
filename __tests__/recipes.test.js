@@ -162,36 +162,24 @@ describe('recipe routes', () => {
   });
 
   it('deletes a recipe by id', async() => {
-    const recipe = await Recipe.create({
-      name: 'cookies',
-      ingredients: [
-        { name: 'flour', amount: 1, measurement: 'cup' }
-      ],
-      directions: [
-        'preheat oven to 375',
-        'mix ingredients',
-        'put dough on cookie sheet',
-        'bake for 10 minutes'
-      ],
-    });
 
     return request(app)
       .delete(`/api/v1/recipes/${recipe._id}`)
       .then(res => {
-        expect(res.body).toEqual({
-          _id: expect.any(String),
-          name: 'cookies',
-          ingredients: [
-            { _id: expect.any(String), name: 'flour', amount: 1, measurement: 'cup' }
-          ],
-          directions: [
-            'preheat oven to 375',
-            'mix ingredients',
-            'put dough on cookie sheet',
-            'bake for 10 minutes'
-          ],
-          __v: 0
-        });
+        expect(res.body).toEqual([{
+          __v: 0,
+          _id: recipe._id.toString(),
+          directions: ['make it'],
+          ingredients: [{
+            _id: JSON.parse(JSON.stringify(recipe.ingredients[0]._id)),
+            amount: 2,
+            measurement: 'teaspoon',
+            name: 'Cardamom'
+          }],
+          name: 'Cardamumabullar'
+        },
+        { 'deletedCount': 1, 'n': 1, 'ok': 1 }
+        ]);
       });
   });
 });
