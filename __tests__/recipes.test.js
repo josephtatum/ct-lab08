@@ -126,6 +126,26 @@ describe('recipe routes', () => {
       });
   });
 
+  it('gets a recipe by query', () => {
+    return request(app)
+      .get('/api/v1/recipes?ingredients=Cardamom')
+      .then(res => {
+        expect(res.body).toEqual([{
+          '__v': 0,
+          '_id': JSON.parse(JSON.stringify(recipe._id)),
+          'directions': ['make it'],
+          'ingredients': [{
+            '_id': JSON.parse(JSON.stringify(recipe.ingredients[0]._id)), 
+            'amount': 2,
+            'measurement':
+            'teaspoon',
+            'name': 'Cardamom'
+          }],
+          'name': 'Cardamumabullar'
+        }]);
+      });
+  });
+
   it('updates a recipe by id', async() => {
     const recipe = await Recipe.create({
       name: 'cookies',
