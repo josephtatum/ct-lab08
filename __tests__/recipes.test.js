@@ -5,6 +5,7 @@ const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
 const Recipe = require('../lib/models/Recipe');
+const Event = require('../lib/models/Event');
 
 describe('recipe routes', () => {
   beforeAll(() => {
@@ -13,6 +14,31 @@ describe('recipe routes', () => {
 
   beforeEach(() => {
     return mongoose.connection.dropDatabase();
+  });
+
+  let event;
+  let recipe;
+  let today;
+  beforeEach(async() => {
+    today = new Date;
+    recipe = await Recipe
+      .create({
+        name: 'Cardamumabullar',
+        ingredients: [{
+          amount: 2,
+          measurement: 'teaspoon',
+          name: 'Cardamom'
+        }],
+        directions: ['make it']
+      });
+
+    event = await Event
+      .create({
+        recipeId: recipe._id,
+        dateOfEvent: today,
+        notes: 'was good!',
+        rating: 3
+      });
   });
 
   afterAll(() => {
@@ -72,36 +98,51 @@ describe('recipe routes', () => {
   });
 
   it('gets a recipe by id', async() => {
-    const recipe = await Recipe.create({
-      name: 'cookies',
-      ingredients: [
-        { name: 'flour', amount: 1, measurement: 'cup' }
-      ],
-      directions: [
-        'preheat oven to 375',
-        'mix ingredients',
-        'put dough on cookie sheet',
-        'bake for 10 minutes'
-      ],
-    });
-
     return request(app)
       .get(`/api/v1/recipes/${recipe._id}`)
       .then(res => {
         expect(res.body).toEqual({
-          _id: expect.any(String),
-          name: 'cookies',
-          ingredients: [
-            { _id: expect.any(String), name: 'flour', amount: 1, measurement: 'cup' }
-          ],
+          _id: recipe._id.toString(),
+          name: 'Cardamumabullar',
+          ingredients: [{
+            _id: JSON.parse(JSON.stringify(recipe.ingredients[0]._id)),
+            amount: 2,
+            measurement: 'teaspoon',
+            name: 'Cardamom'
+          }],
           directions: [
-            'preheat oven to 375',
-            'mix ingredients',
-            'put dough on cookie sheet',
-            'bake for 10 minutes'
+            'make it'
           ],
+          events: [{
+            recipeId: recipe._id.toString(),
+            _id: event._id.toString(),
+            dateOfEvent: today.toISOString(),
+            notes: 'was good!',
+            rating: 3,
+            __v: 0
+          }],
           __v: 0
         });
+      });
+  });
+
+  it('gets a recipe by query', () => {
+    return request(app)
+      .get('/api/v1/recipes?ingredients=Cardamom')
+      .then(res => {
+        expect(res.body).toEqual([{
+          '__v': 0,
+          '_id': JSON.parse(JSON.stringify(recipe._id)),
+          'directions': ['make it'],
+          'ingredients': [{
+            '_id': JSON.parse(JSON.stringify(recipe.ingredients[0]._id)), 
+            'amount': 2,
+            'measurement':
+            'teaspoon',
+            'name': 'Cardamom'
+          }],
+          'name': 'Cardamumabullar'
+        }]);
       });
   });
 
@@ -141,36 +182,24 @@ describe('recipe routes', () => {
   });
 
   it('deletes a recipe by id', async() => {
-    const recipe = await Recipe.create({
-      name: 'cookies',
-      ingredients: [
-        { name: 'flour', amount: 1, measurement: 'cup' }
-      ],
-      directions: [
-        'preheat oven to 375',
-        'mix ingredients',
-        'put dough on cookie sheet',
-        'bake for 10 minutes'
-      ],
-    });
 
     return request(app)
       .delete(`/api/v1/recipes/${recipe._id}`)
       .then(res => {
-        expect(res.body).toEqual({
-          _id: expect.any(String),
-          name: 'cookies',
-          ingredients: [
-            { _id: expect.any(String), name: 'flour', amount: 1, measurement: 'cup' }
-          ],
-          directions: [
-            'preheat oven to 375',
-            'mix ingredients',
-            'put dough on cookie sheet',
-            'bake for 10 minutes'
-          ],
-          __v: 0
-        });
+        expect(res.body).toEqual([{
+          __v: 0,
+          _id: recipe._id.toString(),
+          directions: ['make it'],
+          ingredients: [{
+            _id: JSON.parse(JSON.stringify(recipe.ingredients[0]._id)),
+            amount: 2,
+            measurement: 'teaspoon',
+            name: 'Cardamom'
+          }],
+          name: 'Cardamumabullar'
+        },
+        { 'deletedCount': 1, 'n': 1, 'ok': 1 }
+        ]);
       });
   });
 });
